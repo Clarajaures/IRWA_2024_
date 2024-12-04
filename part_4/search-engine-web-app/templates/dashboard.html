@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+{% block page_title %}Analytics Dashboard{% endblock %}
+
+{% block header %}
+    <!-- Load Chart.js for visualizations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.6.2/chart.min.js"
+            integrity="sha512-tMabqarPtykgDtdtSqCL3uLVM0gS1ZkUAVhRFu1vSEFgvB73niFQWJuvviDyBGBH22Lcau4rHB5p2K2T0Xvr6Q=="
+            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+{% endblock %}
+
+{% block content %}
+<h3>Analytics Dashboard</h3>
+
+<!-- Key Metrics -->
+<div>
+    <h4>Key Metrics</h4>
+    <p><strong>Total Clicks:</strong> {{ total_clicks }}</p>
+    <p><strong>Total Queries:</strong> {{ total_queries }}</p>
+</div>
+
+<!-- Ranking of Visited Documents -->
+<script>
+    // 'visited_docs' is the data coming from Python code.
+    // load the python list in the JS variable 'visits_list':
+    const visits_list = {{ visited_docs | tojson | safe }};
+    console.log("visited docs: ")
+    console.log(visits_list)
+</script>
+
+<h5>Ranking of Visited Documents</h5>
+<canvas id="dailyVisits" width="400" height="400"></canvas>
+
+
+<script>
+    // use JS map function top get just the tweet ids as labels
+    const visitsLabels = visits_list.map(a => "id: " + a.doc_id);
+    const visitsData = visits_list.map(a => a.counter);
+    const chartData1 = {
+        labels: visitsLabels,
+        datasets: [{
+            label: 'Visits count',
+            // data: [65, 59, 80, 81, 56, 55, 40],
+            data: visitsData,
+            fill: false,
+            borderColor: 'rgb(75, 192, 192)',
+            tension: 0.1
+        }]
+    };
+
+    const ctx = document.getElementById('dailyVisits').getContext('2d');
+
+    // This will render the chart
+    const myChart = new Chart(ctx, {
+        type: 'line',
+        data: chartData1,
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+</script>
+
+<hr>
+<h5>Print Python data for verification with graph above...</h5>
+{% for doc in visited_docs %}
+    <div class="pb-3">
+        <div class="">
+            <span class="text-dark"> ({{ doc.counter }} visits) </span> — id: {{ doc.doc_id }}
+            — {{ doc.description }}
+        </div>
+    </div>
+    <hr>
+{% endfor %}
+
+
+
+<script>
+    // another example
+    const data2 = {
+        labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+        datasets: [{
+            label: '# of Votes',
+            data: [12, 19, 3, 5, 2, 3],
+            backgroundColor: [
+                'rgba(255, 99, 132, 0.2)',
+                'rgba(54, 162, 235, 0.2)',
+                'rgba(255, 206, 86, 0.2)',
+                'rgba(75, 192, 192, 0.2)',
+                'rgba(153, 102, 255, 0.2)',
+                'rgba(255, 159, 64, 0.2)'
+            ],
+            borderColor: [
+                'rgba(255, 99, 132, 1)',
+                'rgba(54, 162, 235, 1)',
+                'rgba(255, 206, 86, 1)',
+                'rgba(75, 192, 192, 1)',
+                'rgba(153, 102, 255, 1)',
+                'rgba(255, 159, 64, 1)'
+            ],
+            borderWidth: 1
+        }]
+    };
+
+    // This will render the chart
+    new Chart(document.getElementById("dailyVisits2"), {
+        type: 'bar',
+        data: {
+            labels: myLabels,
+            datasets: [{
+                data: [1, 2, 3],
+                label: "Alberta",
+                borderColor: "#3e95cd",
+                fill: false
+            }, {
+                data: [1, 2, 3],
+                label: "BC",
+                borderColor: "#8e5ea2",
+                fill: false
+            }, {
+                data: [1, 2, 3],
+                label: "Manitoba",
+                borderColor: "#3cba9f",
+                fill: false
+            }, {
+                data: [1, 2, 3],
+                label: "New Brunswick",
+                borderColor: "#e8c3b9",
+                fill: false
+            }, {
+                data: [1, 2, 3],
+                label: "NL",
+                borderColor: "#c45850",
+                fill: false
+            }
+            ]
+        },
+        options: {
+            title: {
+                display: true,
+                text: 'Some title'
+            },
+            hover: {
+                mode: 'index',
+                intersect: true
+            },
+        }
+    });
+
+
+</script>
+
+
+<canvas id="dailyVisits2" width="400" height="400"></canvas>
+
+<hr>
+
+<!-- Ranking of Search Queries -->
+<h5>Ranking of Search Queries</h5>
+<canvas id="queryRankingChart" width="400" height="400"></canvas>
+<script>
+    const queryData = {{ fact_query_terms | tojson | safe }};
+    const queryLabels = Object.keys(queryData);
+    const queryCounts = Object.values(queryData);
+
+    new Chart(document.getElementById('queryRankingChart').getContext('2d'), {
+        type: 'line',
+        data: {
+            labels: queryLabels,
+            datasets: [{
+                label: 'Search Queries',
+                data: queryCounts,
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+</script>
+
+<hr>
+
+<!-- Ranking of IP Addresses -->
+<h5>Ranking of IP Addresses</h5>
+<canvas id="ipRankingChart" width="400" height="400"></canvas>
+<script>
+    const ipData = {{ fact_two | tojson | safe }};
+    const ipLabels = Object.keys(ipData);
+    const ipCounts = Object.values(ipData);
+
+    new Chart(document.getElementById('ipRankingChart').getContext('2d'), {
+        type: 'pie',
+        data: {
+            labels: ipLabels,
+            datasets: [{
+                label: 'IP Address Access',
+                data: ipCounts,
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(54, 162, 235, 0.2)',
+                    'rgba(255, 206, 86, 0.2)',
+                    'rgba(75, 192, 192, 0.2)',
+                    'rgba(153, 102, 255, 0.2)',
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)',
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true
+        }
+    });
+</script>
+
+<hr>
+
+<!-- Ranking of Agent Information -->
+<h5>Ranking of User Agents</h5>
+<canvas id="agentRankingChart" width="400" height="400"></canvas>
+<script>
+    const agentData = {{ fact_three | tojson | safe }};
+    const agentLabels = Object.keys(agentData).map(agentKey => {
+        const agent = agentData[agentKey];
+        return `${agent[1]} (${agent[3]} v${agent[4]})`;
+    });
+    const agentCounts = Object.keys(agentData).map(agentKey => agentData[agentKey][0]);
+
+    new Chart(document.getElementById('agentRankingChart').getContext('2d'), {
+        type: 'polarArea',
+        data: {
+            labels: agentLabels,
+            datasets: [{
+                label: 'User Agents',
+                data: agentCounts,
+                backgroundColor: [
+                    'rgba(255, 159, 64, 0.2)',
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(54, 162, 235, 0.2)',
+                    'rgba(153, 102, 255, 0.2)'
+                ],
+                borderColor: [
+                    'rgba(255, 159, 64, 1)',
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(153, 102, 255, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true
+        }
+    });
+</script>
+
+{% endblock %}

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document Detail - IRWA Search Engine</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .tweet {
+            border: 1px solid #ccc;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+        }
+        .tweet h2 {
+            margin-top: 0;
+        }
+        .tweet p {
+            margin-bottom: 10px;
+        }
+        .tweet a {
+            color: #1da1f2;
+            text-decoration: none;
+        }
+        .tweet a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+<div><a href="#" onclick="history.go(-1)">Go Back</a></div>
+<div><a href="/stats" >Stats</a></div>
+<div><a href="/dashboard" >Dashboard</a></div>
+
+<div class="tweet">
+    <h2>Title: {{ Tweet_result.title }}</h2>
+
+    <p><strong>Date:</strong> {{ Tweet_result.doc_date }}</p>
+    <p><strong>Likes:</strong> {{ Tweet_result.likes }}</p>
+    <p><strong>Retweets:</strong> {{ Tweet_result.retweets }}</p>
+    <p><strong>URL:</strong> <a href="{{ Tweet_result.url }}">{{ Tweet_result.url }}</a></p>
+    <p><strong>Hashtags:</strong> {{ Tweet_result.hashtags }}</p>
+</div>
+
+<!-- Estilizando el botón Sentiment fuera del div del tweet -->
+<button class="btn btn-lg btn-success sentiment-button" type="button" onclick="redirectToSentiment('{{ Tweet_result.title }}')">Sentiment</button>
+<!-- Script para redireccionar a la página de Sentiment -->
+<script>
+    function redirectToSentiment(tweetParameter) {
+        var titleParameter = encodeURIComponent(tweetParameter);
+        window.location.href = 'http://127.0.0.1:8088/sentiment?title=' + titleParameter;
+    }
+</script>
+
+</body>
+</html>
